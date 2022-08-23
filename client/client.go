@@ -134,6 +134,7 @@ func (c *MsgClient) StartTwoDirectionClient() bool {
 	//msg := message.MakeFourKBMessage()
 	//msg := message.MakeOneMBMessage()
 	for k := 0; k < 20; k++ {
+		c.wg = new(sync.WaitGroup)
 		msgChan := make(chan *protogo.Message, 20000)
 		for j := 0; j < sendTimes/2000; j++ {
 			go func() {
