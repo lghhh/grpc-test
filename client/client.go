@@ -112,7 +112,7 @@ func (c *MsgClient) StartToClientClient() bool {
 	return true
 }
 
-func (c *MsgClient) StartTwoDirectionClient() bool {
+func (c *MsgClient) StartTwoDirectionClient(group *sync.WaitGroup) bool {
 	c.logger.Infof("start message client")
 
 	conn, err := c.NewClientConn()
@@ -147,6 +147,8 @@ func (c *MsgClient) StartTwoDirectionClient() bool {
 	go c.twoDirectionClientSendMsgRoutine(stream, sendTimes, msgChan)
 	go c.twoDirectionClientRecvMsgRoutine(stream, sendTimes)
 	c.wg.Wait()
+
+	group.Done()
 
 	return true
 }
@@ -295,10 +297,13 @@ func main() {
 	//time.Sleep(1000000000000)
 	startTime := time.Now()
 	sendTimes := 20000
+	wg := new(sync.WaitGroup)
+	wg.Add(4)
 	for i := 0; i < 4; i++ {
 		client := NewMsgClient(log)
-		go client.StartTwoDirectionClient()
+		go client.StartTwoDirectionClient(wg)
 	}
+	wg.Wait()
 	size := sendTimes * message.MakeOneKBMessage().Size() / 1000000
 	sec := int(time.Since(startTime).Milliseconds())
 
