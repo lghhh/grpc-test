@@ -133,29 +133,20 @@ func (c *MsgClient) StartTwoDirectionClient() bool {
 	msg := message.MakeOneKBMessage()
 	//msg := message.MakeFourKBMessage()
 	//msg := message.MakeOneMBMessage()
-	for k := 0; k < 20; k++ {
-		c.wg = new(sync.WaitGroup)
-		msgChan := make(chan *protogo.Message, 20000)
-		for j := 0; j < sendTimes/2000; j++ {
-			go func() {
-				for i := 0; i < 2000; i++ {
-					msgChan <- msg
-				}
-			}()
-		}
-		c.wg.Add(2)
-		startTime := time.Now()
-
-		go c.twoDirectionClientSendMsgRoutine(stream, sendTimes, msgChan)
-		go c.twoDirectionClientRecvMsgRoutine(stream, sendTimes)
-		c.wg.Wait()
-
-		size := sendTimes * msg.Size() / 1000000
-		sec := int(time.Since(startTime).Milliseconds())
-
-		c.logger.Infof("finish sending %d messages in time: %dms, total size: %dMB, messages per ms: %d, "+
-			"speed: %dMB/ms, tcpFlag: %v", sendTimes, sec, size, sendTimes/sec, size/sec, tcpFlag)
+	c.wg = new(sync.WaitGroup)
+	msgChan := make(chan *protogo.Message, 5000)
+	for j := 0; j < sendTimes/2000; j++ {
+		go func() {
+			for i := 0; i < 2000; i++ {
+				msgChan <- msg
+			}
+		}()
 	}
+	c.wg.Add(2)
+
+	go c.twoDirectionClientSendMsgRoutine(stream, sendTimes, msgChan)
+	go c.twoDirectionClientRecvMsgRoutine(stream, sendTimes)
+	c.wg.Wait()
 
 	return true
 }
@@ -302,9 +293,16 @@ func main() {
 	//	go client.StartToServerClient()
 	//}
 	//time.Sleep(1000000000000)
+	startTime := time.Now()
+	sendTimes := 20000
 	for i := 0; i < 4; i++ {
 		client := NewMsgClient(log)
 		go client.StartTwoDirectionClient()
 	}
+	size := sendTimes * message.MakeOneKBMessage().Size() / 1000000
+	sec := int(time.Since(startTime).Milliseconds())
+
+	log.Infof("finish sending %d messages in time: %dms, total size: %dMB, messages per ms: %d, "+
+		"speed: %dMB/ms, tcpFlag: %v", sendTimes, sec, size, sendTimes/sec, size/sec, tcpFlag)
 	time.Sleep(1000000000000)
 }
