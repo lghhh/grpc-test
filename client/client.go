@@ -127,7 +127,7 @@ func (c *MsgClient) StartTwoDirectionClient(group *sync.WaitGroup) bool {
 		return false
 	}
 
-	sendTimes := 20000
+	sendTimes := 5000
 
 	//msg := message.MakeOneBMessage()
 	msg := message.MakeOneKBMessage()
@@ -135,9 +135,9 @@ func (c *MsgClient) StartTwoDirectionClient(group *sync.WaitGroup) bool {
 	//msg := message.MakeOneMBMessage()
 	c.wg = new(sync.WaitGroup)
 	msgChan := make(chan *protogo.Message, 5000)
-	for j := 0; j < sendTimes/2000; j++ {
+	for j := 0; j < sendTimes/1000; j++ {
 		go func() {
-			for i := 0; i < 2000; i++ {
+			for i := 0; i < 1000; i++ {
 				msgChan <- msg
 			}
 		}()
@@ -295,19 +295,22 @@ func main() {
 	//	go client.StartToServerClient()
 	//}
 	//time.Sleep(1000000000000)
-	startTime := time.Now()
-	sendTimes := 20000
-	wg := new(sync.WaitGroup)
-	wg.Add(4)
-	for i := 0; i < 4; i++ {
-		client := NewMsgClient(log)
-		go client.StartTwoDirectionClient(wg)
-	}
-	wg.Wait()
-	size := sendTimes * message.MakeOneKBMessage().Size() / 1000000
-	sec := int(time.Since(startTime).Milliseconds())
+	for j := 0; j < 20; j++ {
+		startTime := time.Now()
+		sendTimes := 20000
+		wg := new(sync.WaitGroup)
+		wg.Add(4)
+		for i := 0; i < 4; i++ {
+			client := NewMsgClient(log)
+			go client.StartTwoDirectionClient(wg)
+		}
+		wg.Wait()
+		size := sendTimes * message.MakeOneKBMessage().Size() / 1000000
+		sec := int(time.Since(startTime).Milliseconds())
 
-	log.Infof("finish sending %d messages in time: %dms, total size: %dMB, messages per ms: %d, "+
-		"speed: %dMB/ms, tcpFlag: %v", sendTimes, sec, size, sendTimes/sec, size/sec, tcpFlag)
+		log.Infof("finish sending %d messages in time: %dms, total size: %dMB, messages per ms: %d, "+
+			"speed: %dMB/ms, tcpFlag: %v", sendTimes, sec, size, sendTimes/sec, size/sec, tcpFlag)
+	}
+
 	time.Sleep(1000000000000)
 }
