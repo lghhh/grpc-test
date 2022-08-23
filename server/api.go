@@ -40,10 +40,10 @@ func (a *API) MessageTwoDirection(server protogo.MessageRPC_MessageTwoDirectionS
 	size := recvCount * message.MakeOneKBMessage().Size() / 1000000
 	//size := recvCount * message.MakeFourKBMessage().Size() / 1000000
 	//size := recvCount * message.MakeOneMBMessage().Size() / 1000000
-	sec := int(time.Since(startTime).Seconds())
+	sec := int(time.Since(startTime).Milliseconds())
 
-	Logger.Infof("stream %d recv %d msgs in time %d, total size: %dMB, messages per sec: %d, speed %dMB/s, "+
-		"send %d messages in time:%d, messages per sec: %d, speed %dMB/s, tcpFlag: %v",
+	Logger.Infof("stream %d recv %d msgs in time %d, total size: %dMB, messages per ms: %d, speed %dMB/ms, "+
+		"send %d messages in time:%d, messages per ms: %d, speed %dMB/ms, tcpFlag: %v",
 		index, recvCount, sec, size, recvCount/sec, size/sec, sendTimes, sec, sendTimes/sec, size/sec, tcpFlag)
 
 	return nil
